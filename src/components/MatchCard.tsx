@@ -1,32 +1,58 @@
-import type { UserProfile } from '../types'
+import type { ScoredMatch } from '../types'
 
 interface MatchCardProps {
-  user: UserProfile
+  match: ScoredMatch
 }
 
-export default function MatchCard({ user }: MatchCardProps) {
-  return (
-    <div className="bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-200 rounded-xl p-5 shadow-sm">
-      <div className="flex items-center gap-2 mb-3">
-        <span className="text-emerald-600 font-semibold text-sm uppercase tracking-wide">
-          Match Found!
-        </span>
-        <span className="text-emerald-500">✓</span>
-      </div>
+export default function MatchCard({ match }: MatchCardProps) {
+  const { user, score, sharedSkills } = match
+  const displayName = user.isGhost ? 'Anonymous' : user.name
 
-      <div className="flex items-start gap-3">
-        <div className="w-10 h-10 rounded-full bg-emerald-200 flex items-center justify-center text-emerald-700 font-bold text-lg flex-shrink-0">
-          {user.name.charAt(0).toUpperCase()}
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="font-semibold text-gray-900 text-lg leading-tight">{user.name}</p>
-          <p className="text-gray-600 text-sm mt-0.5">{user.role}</p>
-          <div className="mt-2">
-            <span className="text-xs text-gray-500 uppercase tracking-wide font-medium">Open to</span>
-            <p className="text-gray-700 text-sm mt-0.5">{user.openTo}</p>
+  return (
+    <div className="border border-gray-100 rounded-xl p-4 hover:border-gray-200 transition-colors">
+      <div className="flex items-start justify-between mb-3">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 font-medium text-sm flex-shrink-0">
+            {user.isGhost ? '?' : user.name.charAt(0).toUpperCase()}
+          </div>
+          <div>
+            <p className="font-medium text-gray-900 text-sm">{displayName}</p>
+            <p className="text-xs text-gray-400">{user.role}</p>
           </div>
         </div>
+        <span className="text-xs font-medium text-gray-400 bg-gray-50 px-2 py-1 rounded-full">
+          {score}%
+        </span>
       </div>
+
+      {sharedSkills.length > 0 && (
+        <div className="flex flex-wrap gap-1.5">
+          {sharedSkills.map(skill => (
+            <span
+              key={skill}
+              className="text-xs bg-gray-900 text-white px-2 py-0.5 rounded-full"
+            >
+              {skill}
+            </span>
+          ))}
+          {user.skills
+            .filter(s => !sharedSkills.map(ss => ss.toLowerCase()).includes(s.toLowerCase()))
+            .map(skill => (
+              <span
+                key={skill}
+                className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full"
+              >
+                {skill}
+              </span>
+            ))}
+        </div>
+      )}
+
+      {user.openTo && (
+        <p className="text-xs text-gray-400 mt-2">
+          Open to: {user.openTo}
+        </p>
+      )}
     </div>
   )
 }
