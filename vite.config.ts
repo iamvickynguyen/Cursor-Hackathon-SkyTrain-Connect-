@@ -11,7 +11,7 @@ export default defineConfig({
         name: 'SkyTrain Connect',
         short_name: 'SkyConnect',
         description: 'Connect with skilled professionals on your commute',
-        theme_color: '#1d4ed8',
+        theme_color: '#005aaf',
         background_color: '#ffffff',
         display: 'standalone',
         icons: [

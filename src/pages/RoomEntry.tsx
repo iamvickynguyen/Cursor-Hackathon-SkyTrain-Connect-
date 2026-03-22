@@ -89,13 +89,13 @@ export default function RoomEntry({ onJoinRoom, onBack }: RoomEntryProps) {
                 onChange={e => setRoomCode(e.target.value.toUpperCase())}
                 placeholder="e.g. A3K9X2"
                 maxLength={6}
-                className="w-full border-b border-gray-200 px-0 py-2 text-2xl font-mono text-gray-900 placeholder-gray-300 focus:outline-none focus:border-gray-900 transition-colors bg-transparent tracking-[0.3em] text-center"
+                className="w-full border-b border-gray-200 px-0 py-2 text-2xl font-mono text-gray-900 placeholder-gray-300 focus:outline-none focus:border-primary transition-colors bg-transparent tracking-[0.3em] text-center"
               />
             </div>
             <button
               onClick={handleJoin}
               disabled={roomCode.trim().length < 4}
-              className="w-full bg-gray-900 hover:bg-gray-800 disabled:bg-gray-300 text-white font-medium py-3 rounded-lg transition-colors"
+              className="w-full bg-primary hover:bg-primary-dark disabled:bg-gray-300 text-white font-medium py-3 rounded-lg transition-colors"
             >
               Join
             </button>
@@ -105,7 +105,7 @@ export default function RoomEntry({ onJoinRoom, onBack }: RoomEntryProps) {
             {!generatedCode ? (
               <button
                 onClick={handleCreate}
-                className="w-full bg-gray-900 hover:bg-gray-800 text-white font-medium py-3 rounded-lg transition-colors"
+                className="w-full bg-primary hover:bg-primary-dark text-white font-medium py-3 rounded-lg transition-colors"
               >
                 Generate Room Code
               </button>
@@ -115,7 +115,7 @@ export default function RoomEntry({ onJoinRoom, onBack }: RoomEntryProps) {
                   <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">
                     Your Room Code
                   </p>
-                  <p className="text-4xl font-mono font-bold text-gray-900 tracking-[0.3em]">
+                  <p className="text-4xl font-mono font-bold text-primary tracking-[0.3em]">
                     {generatedCode}
                   </p>
                 </div>
@@ -127,6 +127,7 @@ export default function RoomEntry({ onJoinRoom, onBack }: RoomEntryProps) {
                       size={180}
                       level="M"
                       bgColor="transparent"
+                      fgColor="#005aaf"
                     />
                   </div>
                 </div>
@@ -137,7 +138,7 @@ export default function RoomEntry({ onJoinRoom, onBack }: RoomEntryProps) {
 
                 <button
                   onClick={() => onJoinRoom(generatedCode)}
-                  className="w-full bg-gray-900 hover:bg-gray-800 text-white font-medium py-3 rounded-lg transition-colors"
+                  className="w-full bg-primary hover:bg-primary-dark text-white font-medium py-3 rounded-lg transition-colors"
                 >
                   Enter Room
                 </button>

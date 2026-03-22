@@ -29,5 +29,5 @@ export function findMatches(
     .map(user => calculateMatchScore(currentUser, user))
     .filter(m => m.score > 0)
     .sort((a, b) => b.score - a.score)
-    .slice(0, 10)
+    .slice(0, 20)
 }

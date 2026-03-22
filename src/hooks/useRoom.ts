@@ -39,6 +39,7 @@ export function useRoom(profile: UserProfile | null) {
         others.push({
           id: docSnap.id,
           name: data.name as string,
+          photoUrl: (data.photoUrl as string) ?? '',
           role: data.role as string,
           skills: (data.skills as string[]) ?? [],
           openTo: (data.openTo as string) ?? '',
