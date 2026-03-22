@@ -46,7 +46,13 @@ export default function ProfileSetup({ onProfileSaved }: ProfileSetupProps) {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    if (!name.trim() || !effectiveRole.trim() || skills.length === 0 || !photoUrl || !openTo.trim())
+    if (
+      !name.trim() ||
+      !effectiveRole.trim() ||
+      skills.length === 0 ||
+      !photoUrl ||
+      !openTo.trim()
+    )
       return;
 
     setLoading(true);
@@ -109,7 +115,7 @@ export default function ProfileSetup({ onProfileSaved }: ProfileSetupProps) {
       <div className="w-full max-w-md">
         <div className="mb-8">
           <h1 className="text-2xl font-semibold text-gray-900 tracking-tight">
-            SkyTrain Connect
+            Trainspotting People
           </h1>
           <p className="text-sm text-gray-400 mt-1">
             Set up your profile to find matches on the train.
