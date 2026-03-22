@@ -1,32 +1,87 @@
-import type { UserProfile } from '../types'
+import type { ScoredMatch } from '../types'
 
 interface MatchCardProps {
-  user: UserProfile
+  match: ScoredMatch
+  status: 'none' | 'pending' | 'accepted' | 'declined'
+  onYes: () => void
+  onNo: () => void
 }
 
-export default function MatchCard({ user }: MatchCardProps) {
+export default function MatchCard({ match, status, onYes, onNo }: MatchCardProps) {
+  const { user, score, sharedSkills } = match
+  const displayName = user.isGhost ? 'Anonymous' : user.name
+
   return (
-    <div className="bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-200 rounded-xl p-5 shadow-sm">
-      <div className="flex items-center gap-2 mb-3">
-        <span className="text-emerald-600 font-semibold text-sm uppercase tracking-wide">
-          Match Found!
-        </span>
-        <span className="text-emerald-500">✓</span>
+    <div className="border border-gray-100 rounded-2xl p-6">
+      <div className="flex justify-center mb-4">
+        <div className="w-20 h-20 rounded-full bg-primary-light flex items-center justify-center text-primary text-3xl font-light">
+          {user.isGhost ? '?' : user.name.charAt(0).toUpperCase()}
+        </div>
       </div>
 
-      <div className="flex items-start gap-3">
-        <div className="w-10 h-10 rounded-full bg-emerald-200 flex items-center justify-center text-emerald-700 font-bold text-lg flex-shrink-0">
-          {user.name.charAt(0).toUpperCase()}
+      <div className="text-center mb-4">
+        <p className="font-semibold text-gray-900 text-lg">{displayName}</p>
+        <p className="text-sm text-gray-400 mt-0.5">{user.role}</p>
+        <p className="text-xs text-gray-300 mt-1">{score}% match</p>
+      </div>
+
+      {sharedSkills.length > 0 && (
+        <div className="flex flex-wrap justify-center gap-1.5 mb-4">
+          {sharedSkills.map(skill => (
+            <span
+              key={skill}
+              className="text-xs bg-primary text-white px-2.5 py-0.5 rounded-full"
+            >
+              {skill}
+            </span>
+          ))}
+          {user.skills
+            .filter(
+              s =>
+                !sharedSkills
+                  .map(ss => ss.toLowerCase())
+                  .includes(s.toLowerCase()),
+            )
+            .map(skill => (
+              <span
+                key={skill}
+                className="text-xs bg-gray-100 text-gray-500 px-2.5 py-0.5 rounded-full"
+              >
+                {skill}
+              </span>
+            ))}
         </div>
-        <div className="flex-1 min-w-0">
-          <p className="font-semibold text-gray-900 text-lg leading-tight">{user.name}</p>
-          <p className="text-gray-600 text-sm mt-0.5">{user.role}</p>
-          <div className="mt-2">
-            <span className="text-xs text-gray-500 uppercase tracking-wide font-medium">Open to</span>
-            <p className="text-gray-700 text-sm mt-0.5">{user.openTo}</p>
+      )}
+
+      <p className="text-xs text-gray-400 text-center mb-6">
+        Open to: {user.openTo}
+      </p>
+
+      {status === 'pending' ? (
+        <div className="text-center py-3 bg-primary-light rounded-xl">
+          <div className="flex items-center justify-center gap-2">
+            <div className="w-3 h-3 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+            <p className="text-sm font-medium text-primary">
+              Waiting for response...
+            </p>
           </div>
         </div>
-      </div>
+      ) : (
+        <div className="flex gap-3">
+          <button
+            onClick={onNo}
+            className="flex-1 py-3 rounded-xl border border-gray-200 text-gray-500 font-medium text-sm hover:bg-gray-50 transition-colors"
+          >
+            Skip
+          </button>
+          <button
+            onClick={onYes}
+            className="flex-1 py-3 rounded-xl bg-primary text-white font-medium text-sm hover:bg-primary-dark transition-colors"
+          >
+            Interested
+          </button>
+        </div>
+      )}
     </div>
   )
 }

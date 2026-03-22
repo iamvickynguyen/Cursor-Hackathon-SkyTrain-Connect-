@@ -1,155 +1,281 @@
-import { useEffect, useState } from 'react'
-import { doc, updateDoc, collection, query, where, onSnapshot } from 'firebase/firestore'
+import { useState, useMemo, useEffect } from 'react'
+import { doc, updateDoc } from 'firebase/firestore'
 import { db } from '../firebase'
 import type { UserProfile } from '../types'
-import { findBestMatch } from '../utils/matching'
+import { usePresence } from '../hooks/usePresence'
+import { useRoom } from '../hooks/useRoom'
+import { useConnections } from '../hooks/useConnections'
 import MatchCard from '../components/MatchCard'
+import SendPanel from '../components/SendPanel'
+import InviteCard from '../components/InviteCard'
+import IncomingCard from '../components/IncomingCard'
 
 interface TrainViewProps {
   profile: UserProfile
   onLeave: () => void
+  onToggleGhost: (ghost: boolean) => void
 }
 
-export default function TrainView({ profile, onLeave }: TrainViewProps) {
-  const [activeUsers, setActiveUsers] = useState(0)
-  const [bestMatch, setBestMatch] = useState<UserProfile | null>(null)
-  const [scanning, setScanning] = useState(true)
+export default function TrainView({ profile, onLeave, onToggleGhost }: TrainViewProps) {
+  usePresence(profile.id, profile.roomId)
+  const { nearbyUsers, matches, loading } = useRoom(profile)
+  const {
+    receivedInterests,
+    incoming,
+    sentTo,
+    sendInterest,
+    respondToInterest,
+    sendConnection,
+    getInterestStatus,
+  } = useConnections(profile)
+
+  const [skipped, setSkipped] = useState<Set<string>>(new Set())
+  const [showSendFor, setShowSendFor] = useState<string | null>(null)
+
+  const currentMatch = useMemo(() => {
+    return (
+      matches.find(m => {
+        const status = getInterestStatus(m.user.id)
+        return (
+          !skipped.has(m.user.id) &&
+          status === 'none' &&
+          !sentTo.has(m.user.id)
+        )
+      }) ?? null
+    )
+  }, [matches, skipped, getInterestStatus, sentTo])
+
+  const waitingMatch = useMemo(() => {
+    return (
+      matches.find(m => getInterestStatus(m.user.id) === 'pending') ?? null
+    )
+  }, [matches, getInterestStatus])
+
+  const acceptedMatch = useMemo(() => {
+    return (
+      matches.find(
+        m => getInterestStatus(m.user.id) === 'accepted' && !sentTo.has(m.user.id),
+      ) ?? null
+    )
+  }, [matches, getInterestStatus, sentTo])
 
   useEffect(() => {
-    // Update lastSeen immediately on mount
-    const updatePresence = () => {
-      updateDoc(doc(db, 'users', profile.id), {
-        lastSeen: Date.now(),
-        isActive: true,
-      }).catch(console.error)
+    if (acceptedMatch && !showSendFor) {
+      setShowSendFor(acceptedMatch.user.id)
+      if (navigator.vibrate) navigator.vibrate([100, 50, 100])
     }
+  }, [acceptedMatch, showSendFor])
 
-    updatePresence()
+  const sendPanelMatch = useMemo(() => {
+    if (!showSendFor) return null
+    return matches.find(m => m.user.id === showSendFor) ?? null
+  }, [matches, showSendFor])
 
-    // Keepalive every 30 seconds
-    const interval = setInterval(updatePresence, 30_000)
+  const handleNo = () => {
+    if (!currentMatch) return
+    setSkipped(prev => new Set(prev).add(currentMatch.user.id))
+  }
 
-    // Real-time listener for active users
-    const usersRef = collection(db, 'users')
-    const q = query(usersRef, where('isActive', '==', true))
+  const handleYes = async () => {
+    if (!currentMatch) return
+    await sendInterest(currentMatch.user.id)
+  }
 
-    const unsubscribe = onSnapshot(q, snapshot => {
-      const now = Date.now()
-      const cutoff = now - 5 * 60 * 1000
+  const handleAcceptInvite = async (interestId: string, fromUserId: string) => {
+    await respondToInterest(interestId, 'accepted')
+    setShowSendFor(fromUserId)
+  }
 
-      const others: UserProfile[] = []
+  const handleDeclineInvite = async (interestId: string) => {
+    await respondToInterest(interestId, 'declined')
+  }
 
-      snapshot.forEach(docSnap => {
-        const data = docSnap.data()
-        const lastSeen: number =
-          typeof data.lastSeen === 'number'
-            ? data.lastSeen
-            : data.lastSeen?.toMillis?.() ?? 0
-
-        if (docSnap.id === profile.id) return
-        if (lastSeen < cutoff) return
-
-        others.push({
-          id: docSnap.id,
-          name: data.name as string,
-          role: data.role as string,
-          openTo: data.openTo as string,
-          lastSeen,
-          isActive: data.isActive as boolean,
-        })
-      })
-
-      setActiveUsers(others.length)
-      setBestMatch(findBestMatch(profile, others))
-      setScanning(false)
-    })
-
-    return () => {
-      clearInterval(interval)
-      unsubscribe()
-      updateDoc(doc(db, 'users', profile.id), { isActive: false }).catch(console.error)
-    }
-  }, [profile])
+  const handleSend = async (location: string, message: string) => {
+    if (!showSendFor) return
+    await sendConnection(showSendFor, location, message)
+    setShowSendFor(null)
+  }
 
   const handleLeave = async () => {
     try {
-      await updateDoc(doc(db, 'users', profile.id), { isActive: false })
+      await updateDoc(doc(db, 'users', profile.id), {
+        isActive: false,
+        roomId: '',
+      })
     } catch (err) {
       console.error(err)
     }
     onLeave()
   }
 
+  const handleToggleGhost = async () => {
+    const newGhost = !profile.isGhost
+    try {
+      await updateDoc(doc(db, 'users', profile.id), { isGhost: newGhost })
+      onToggleGhost(newGhost)
+    } catch (err) {
+      console.error(err)
+    }
+  }
+
+  const showingWaiting = !showSendFor && waitingMatch
+  const showingSendPanel = showSendFor && sendPanelMatch
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-900 to-blue-700 p-4">
-      <div className="max-w-md mx-auto space-y-4">
-        {/* Header */}
-        <div className="flex items-center justify-between pt-4 pb-2">
+    <div className="min-h-screen bg-white">
+      <div className="max-w-md mx-auto px-4 py-6 space-y-6">
+        <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-white font-bold text-xl">SkyTrain Connect</h1>
+            <h1 className="text-lg font-semibold text-gray-900">
+              Room {profile.roomId}
+            </h1>
             <div className="flex items-center gap-1.5 mt-0.5">
-              <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse inline-block" />
-              <span className="text-green-300 text-xs font-medium">Broadcasting</span>
+              <span className="w-1.5 h-1.5 rounded-full bg-green-500 inline-block" />
+              <span className="text-xs text-gray-400">
+                {nearbyUsers.length}{' '}
+                {nearbyUsers.length === 1 ? 'person' : 'people'} nearby
+              </span>
             </div>
           </div>
           <button
             onClick={handleLeave}
-            className="text-white/70 hover:text-white text-sm border border-white/30 hover:border-white/60 rounded-lg px-3 py-1.5 transition-colors duration-150"
+            className="text-xs text-gray-400 hover:text-gray-600 border border-gray-200 rounded-lg px-3 py-1.5 transition-colors"
           >
-            Leave Train
+            Leave
           </button>
         </div>
 
-        {/* Your profile card */}
-        <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-5">
-          <p className="text-white/60 text-xs uppercase tracking-wide font-medium mb-3">
-            Your Profile
-          </p>
-          <div className="flex items-start gap-3">
-            <div className="w-10 h-10 rounded-full bg-blue-300 flex items-center justify-center text-blue-900 font-bold text-lg flex-shrink-0">
-              {profile.name.charAt(0).toUpperCase()}
+        <div className="flex items-center justify-between py-3 border-y border-gray-100">
+          <div className="flex items-center gap-2">
+            <div className="w-7 h-7 rounded-full bg-primary-light flex items-center justify-center text-primary font-medium text-xs overflow-hidden">
+              {profile.isGhost ? (
+                '?'
+              ) : profile.photoUrl ? (
+                <img
+                  src={profile.photoUrl}
+                  alt=""
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                profile.name.charAt(0).toUpperCase()
+              )}
             </div>
             <div>
-              <p className="text-white font-semibold text-lg leading-tight">{profile.name}</p>
-              <p className="text-blue-200 text-sm mt-0.5">{profile.role}</p>
-              <div className="mt-2">
-                <span className="text-white/50 text-xs uppercase tracking-wide font-medium">Open to</span>
-                <p className="text-blue-100 text-sm mt-0.5">{profile.openTo}</p>
-              </div>
+              <p className="text-sm font-medium text-gray-900">
+                {profile.isGhost ? 'Anonymous' : profile.name}
+              </p>
+              <p className="text-xs text-gray-400">{profile.role}</p>
             </div>
           </div>
+          <button
+            onClick={handleToggleGhost}
+            className={`text-xs px-2.5 py-1 rounded-full transition-colors ${
+              profile.isGhost
+                ? 'bg-primary text-white'
+                : 'bg-gray-100 text-gray-500'
+            }`}
+          >
+            Ghost {profile.isGhost ? 'On' : 'Off'}
+          </button>
         </div>
 
-        {/* Active users count */}
-        <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl px-5 py-3 flex items-center gap-2">
-          <span className="text-2xl">👥</span>
-          <p className="text-white text-sm">
-            <span className="font-bold">{activeUsers}</span>{' '}
-            {activeUsers === 1 ? 'person' : 'people'} on this train right now
-          </p>
-        </div>
-
-        {/* Match section */}
-        <div className="bg-white rounded-xl p-5 shadow-lg">
-          <p className="text-gray-500 text-xs uppercase tracking-wide font-medium mb-3">
-            Best Match
-          </p>
-
-          {scanning ? (
-            <div className="flex items-center gap-3 py-2">
-              <div className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
-              <p className="text-gray-500 text-sm">Scanning for matches...</p>
+        {receivedInterests.length > 0 && (
+          <div>
+            <p className="text-xs font-medium text-primary uppercase tracking-wider mb-3">
+              Someone is interested in you
+            </p>
+            <div className="space-y-3">
+              {receivedInterests.map(interest => (
+                <InviteCard
+                  key={interest.id}
+                  interest={interest}
+                  onAccept={() => handleAcceptInvite(interest.id, interest.from)}
+                  onDecline={() => handleDeclineInvite(interest.id)}
+                />
+              ))}
             </div>
-          ) : bestMatch ? (
-            <MatchCard user={bestMatch} />
+          </div>
+        )}
+
+        <div>
+          <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-3">
+            Discover
+          </p>
+
+          {loading ? (
+            <div className="flex items-center gap-2 py-12 justify-center">
+              <div className="w-4 h-4 border-2 border-gray-300 border-t-primary rounded-full animate-spin" />
+              <p className="text-sm text-gray-400">Scanning...</p>
+            </div>
+          ) : showingSendPanel && sendPanelMatch ? (
+            <div>
+              <div className="text-center py-4 mb-4">
+                <p className="text-lg font-semibold text-primary">
+                  It's a match!
+                </p>
+                <p className="text-sm text-gray-400 mt-1">
+                  Send your photo and meeting spot.
+                </p>
+              </div>
+              <SendPanel
+                profile={profile}
+                match={sendPanelMatch}
+                onSend={handleSend}
+                onBack={() => setShowSendFor(null)}
+              />
+            </div>
+          ) : showingWaiting && waitingMatch ? (
+            <MatchCard
+              match={waitingMatch}
+              status="pending"
+              onYes={() => {}}
+              onNo={() => {}}
+            />
+          ) : currentMatch ? (
+            <MatchCard
+              match={currentMatch}
+              status="none"
+              onYes={handleYes}
+              onNo={handleNo}
+            />
+          ) : nearbyUsers.length > 0 ? (
+            <div className="text-center py-12">
+              <p className="text-sm text-gray-400">
+                {skipped.size > 0
+                  ? "You've seen everyone nearby."
+                  : 'No skill overlap found.'}
+              </p>
+              {skipped.size > 0 && (
+                <button
+                  onClick={() => setSkipped(new Set())}
+                  className="text-xs text-primary underline mt-2"
+                >
+                  Reset skipped
+                </button>
+              )}
+            </div>
           ) : (
-            <div className="text-center py-6">
-              <div className="text-3xl mb-2">🔍</div>
-              <p className="text-gray-500 text-sm">No other active users found.</p>
-              <p className="text-gray-400 text-xs mt-1">Share the app with fellow commuters!</p>
+            <div className="text-center py-12">
+              <p className="text-sm text-gray-400">No one else is here yet.</p>
+              <p className="text-xs text-gray-300 mt-1">
+                Share the room code with fellow commuters.
+              </p>
             </div>
           )}
         </div>
+
+        {incoming.length > 0 && (
+          <div>
+            <p className="text-xs font-medium text-primary uppercase tracking-wider mb-3">
+              Someone wants to meet you
+            </p>
+            <div className="space-y-3">
+              {incoming.map(conn => (
+                <IncomingCard key={conn.id} connection={conn} />
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )
