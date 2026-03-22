@@ -36,7 +36,9 @@ export interface Connection {
   fromName: string
   fromPhotoUrl: string
   fromRole: string
+  fromOpenTo: string
   location: string
+  message: string
   roomId: string
   createdAt: number
 }

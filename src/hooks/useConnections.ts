@@ -37,7 +37,9 @@ function parseConnection(d: QueryDocumentSnapshot<DocumentData>): Connection {
     fromName: data.fromName as string,
     fromPhotoUrl: data.fromPhotoUrl as string,
     fromRole: data.fromRole as string,
-    location: data.location as string,
+    fromOpenTo: (data.fromOpenTo as string) ?? '',
+    location: (data.location as string) ?? '',
+    message: (data.message as string) ?? '',
     roomId: data.roomId as string,
     createdAt: data.createdAt as number,
   }
@@ -115,7 +117,7 @@ export function useConnections(profile: UserProfile | null) {
   )
 
   const sendConnection = useCallback(
-    async (toUserId: string, location: string) => {
+    async (toUserId: string, location: string, message: string) => {
       if (!profile) return
       await setDoc(doc(db, 'connections', `${profile.id}_${toUserId}`), {
         from: profile.id,
@@ -123,7 +125,9 @@ export function useConnections(profile: UserProfile | null) {
         fromName: profile.name,
         fromPhotoUrl: profile.photoUrl,
         fromRole: profile.role,
+        fromOpenTo: profile.openTo,
         location,
+        message,
         roomId: profile.roomId,
         createdAt: Date.now(),
       } satisfies Omit<Connection, 'id'>)

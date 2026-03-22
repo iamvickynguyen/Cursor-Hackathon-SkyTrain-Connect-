@@ -1,11 +1,11 @@
-import type { Connection } from '../types'
+import type { Connection } from "../types";
 
 interface IncomingCardProps {
-  connection: Connection
+  connection: Connection;
 }
 
 export default function IncomingCard({ connection }: IncomingCardProps) {
-  const timeAgo = getTimeAgo(connection.createdAt)
+  const timeAgo = getTimeAgo(connection.createdAt);
 
   return (
     <div className="border border-primary bg-primary-light rounded-2xl p-5">
@@ -27,21 +27,30 @@ export default function IncomingCard({ connection }: IncomingCardProps) {
         <div className="flex-1 min-w-0">
           <p className="font-medium text-gray-900">{connection.fromName}</p>
           <p className="text-xs text-gray-400">{connection.fromRole}</p>
+          {connection.fromOpenTo && (
+            <p className="text-xs text-gray-500 mt-0.5">
+              Open to: {connection.fromOpenTo}
+            </p>
+          )}
           {connection.location && (
             <p className="text-sm text-primary mt-1">
-              Meet at: <span className="font-medium">{connection.location}</span>
+              Meet at:{" "}
+              <span className="font-medium">{connection.location}</span>
             </p>
+          )}
+          {connection.message && (
+            <p className="text-sm text-gray-600 mt-1">{connection.message}</p>
           )}
           <p className="text-xs text-gray-300 mt-1">{timeAgo}</p>
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 function getTimeAgo(timestamp: number): string {
-  const diff = Math.floor((Date.now() - timestamp) / 1000)
-  if (diff < 60) return 'Just now'
-  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`
-  return `${Math.floor(diff / 3600)}h ago`
+  const diff = Math.floor((Date.now() - timestamp) / 1000);
+  if (diff < 60) return "Just now";
+  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+  return `${Math.floor(diff / 3600)}h ago`;
 }

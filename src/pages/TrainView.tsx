@@ -90,9 +90,9 @@ export default function TrainView({ profile, onLeave, onToggleGhost }: TrainView
     await respondToInterest(interestId, 'declined')
   }
 
-  const handleSend = async (location: string) => {
+  const handleSend = async (location: string, message: string) => {
     if (!showSendFor) return
-    await sendConnection(showSendFor, location)
+    await sendConnection(showSendFor, location, message)
     setShowSendFor(null)
   }
 
@@ -118,7 +118,7 @@ export default function TrainView({ profile, onLeave, onToggleGhost }: TrainView
     }
   }
 
-  const showingWaiting = !showSendFor && waitingMatch && !currentMatch
+  const showingWaiting = !showSendFor && waitingMatch
   const showingSendPanel = showSendFor && sendPanelMatch
 
   return (

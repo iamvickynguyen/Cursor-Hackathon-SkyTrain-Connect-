@@ -4,17 +4,18 @@ import type { UserProfile, ScoredMatch } from '../types'
 interface SendPanelProps {
   profile: UserProfile
   match: ScoredMatch
-  onSend: (location: string) => void
+  onSend: (location: string, message: string) => void
   onBack: () => void
 }
 
 export default function SendPanel({ profile, match, onSend, onBack }: SendPanelProps) {
   const [location, setLocation] = useState('')
+  const [message, setMessage] = useState('')
   const [sending, setSending] = useState(false)
 
   const handleSend = async () => {
     setSending(true)
-    await onSend(location.trim())
+    await onSend(location.trim(), message.trim())
   }
 
   return (
@@ -50,7 +51,7 @@ export default function SendPanel({ profile, match, onSend, onBack }: SendPanelP
         Your photo will be shared with them.
       </p>
 
-      <div className="mb-6">
+      <div className="mb-4">
         <label className="block text-xs font-medium text-gray-500 uppercase tracking-wider mb-1.5">
           Meeting spot <span className="text-gray-300 normal-case">(optional)</span>
         </label>
@@ -59,6 +60,19 @@ export default function SendPanel({ profile, match, onSend, onBack }: SendPanelP
           value={location}
           onChange={e => setLocation(e.target.value)}
           placeholder="e.g. Car 3, by the door"
+          className="w-full border-b border-gray-200 px-0 py-2 text-gray-900 placeholder-gray-300 focus:outline-none focus:border-primary transition-colors bg-transparent"
+        />
+      </div>
+
+      <div className="mb-6">
+        <label className="block text-xs font-medium text-gray-500 uppercase tracking-wider mb-1.5">
+          Message <span className="text-gray-300 normal-case">(optional)</span>
+        </label>
+        <input
+          type="text"
+          value={message}
+          onChange={e => setMessage(e.target.value)}
+          placeholder="e.g. Hey, let's chat!"
           className="w-full border-b border-gray-200 px-0 py-2 text-gray-900 placeholder-gray-300 focus:outline-none focus:border-primary transition-colors bg-transparent"
         />
       </div>
