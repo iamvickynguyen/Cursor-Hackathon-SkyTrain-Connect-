@@ -53,7 +53,6 @@ export default function RoomEntry({ onJoinRoom, onBack }: RoomEntryProps) {
           Enter a room code or create one to share.
         </p>
 
-        {/* Tab toggle */}
         <div className="flex gap-1 bg-gray-100 rounded-lg p-1 mb-8">
           <button
             onClick={() => setMode('join')}

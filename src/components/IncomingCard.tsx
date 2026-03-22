@@ -10,7 +10,6 @@ export default function IncomingCard({ connection }: IncomingCardProps) {
   return (
     <div className="border border-primary bg-primary-light rounded-2xl p-5">
       <div className="flex items-center gap-4">
-        {/* Photo */}
         <div className="w-14 h-14 rounded-full overflow-hidden bg-white border-2 border-primary/20 flex-shrink-0">
           {connection.fromPhotoUrl ? (
             <img

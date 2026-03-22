@@ -30,7 +30,6 @@ export default function SendPanel({ profile, match, onSend, onBack }: SendPanelP
         Send your info to {match.user.isGhost ? 'Anonymous' : match.user.name}
       </p>
 
-      {/* Your photo preview */}
       <div className="flex justify-center mb-4">
         <div className="w-24 h-24 rounded-full overflow-hidden bg-white border-2 border-primary/20">
           {profile.photoUrl ? (
@@ -51,7 +50,6 @@ export default function SendPanel({ profile, match, onSend, onBack }: SendPanelP
         Your photo will be shared with them.
       </p>
 
-      {/* Location input */}
       <div className="mb-6">
         <label className="block text-xs font-medium text-gray-500 uppercase tracking-wider mb-1.5">
           Meeting spot <span className="text-gray-300 normal-case">(optional)</span>

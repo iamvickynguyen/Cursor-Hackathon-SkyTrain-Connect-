@@ -46,7 +46,7 @@ export default function ProfileSetup({ onProfileSaved }: ProfileSetupProps) {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    if (!name.trim() || !effectiveRole.trim() || skills.length === 0 || !photoUrl)
+    if (!name.trim() || !effectiveRole.trim() || skills.length === 0 || !photoUrl || !openTo.trim())
       return;
 
     setLoading(true);
@@ -117,7 +117,6 @@ export default function ProfileSetup({ onProfileSaved }: ProfileSetupProps) {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Photo */}
           <div className="flex flex-col items-center gap-3">
             <button
               type="button"
@@ -164,7 +163,6 @@ export default function ProfileSetup({ onProfileSaved }: ProfileSetupProps) {
             </p>
           </div>
 
-          {/* Name */}
           <div>
             <label className="block text-xs font-medium text-gray-500 uppercase tracking-wider mb-1.5">
               Name
@@ -179,7 +177,6 @@ export default function ProfileSetup({ onProfileSaved }: ProfileSetupProps) {
             />
           </div>
 
-          {/* Role */}
           <div>
             <label className="block text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">
               Role
@@ -211,7 +208,6 @@ export default function ProfileSetup({ onProfileSaved }: ProfileSetupProps) {
             )}
           </div>
 
-          {/* Skills */}
           <div>
             <label className="block text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">
               Skills
@@ -237,11 +233,9 @@ export default function ProfileSetup({ onProfileSaved }: ProfileSetupProps) {
             </div>
           </div>
 
-          {/* Open To */}
           <div>
             <label className="block text-xs font-medium text-gray-500 uppercase tracking-wider mb-1.5">
-              Open To{" "}
-              <span className="text-gray-300 normal-case">(optional)</span>
+              Open To
             </label>
             <input
               type="text"
@@ -252,7 +246,6 @@ export default function ProfileSetup({ onProfileSaved }: ProfileSetupProps) {
             />
           </div>
 
-          {/* Ghost Mode */}
           <div className="flex items-center justify-between py-3 border-t border-gray-100">
             <div>
               <p className="text-sm font-medium text-gray-900">Ghost Mode</p>
@@ -284,7 +277,8 @@ export default function ProfileSetup({ onProfileSaved }: ProfileSetupProps) {
               !name.trim() ||
               !effectiveRole.trim() ||
               skills.length === 0 ||
-              !photoUrl
+              !photoUrl ||
+              !openTo.trim()
             }
             className="w-full bg-primary hover:bg-primary-dark disabled:bg-gray-300 text-white font-medium py-3 rounded-lg transition-colors"
           >

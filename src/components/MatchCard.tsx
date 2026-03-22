@@ -13,21 +13,18 @@ export default function MatchCard({ match, status, onYes, onNo }: MatchCardProps
 
   return (
     <div className="border border-gray-100 rounded-2xl p-6">
-      {/* Avatar placeholder (no photo) */}
       <div className="flex justify-center mb-4">
         <div className="w-20 h-20 rounded-full bg-primary-light flex items-center justify-center text-primary text-3xl font-light">
           {user.isGhost ? '?' : user.name.charAt(0).toUpperCase()}
         </div>
       </div>
 
-      {/* Info */}
       <div className="text-center mb-4">
         <p className="font-semibold text-gray-900 text-lg">{displayName}</p>
         <p className="text-sm text-gray-400 mt-0.5">{user.role}</p>
         <p className="text-xs text-gray-300 mt-1">{score}% match</p>
       </div>
 
-      {/* Skills */}
       {sharedSkills.length > 0 && (
         <div className="flex flex-wrap justify-center gap-1.5 mb-4">
           {sharedSkills.map(skill => (
@@ -56,13 +53,10 @@ export default function MatchCard({ match, status, onYes, onNo }: MatchCardProps
         </div>
       )}
 
-      {user.openTo && (
-        <p className="text-xs text-gray-400 text-center mb-6">
-          Open to: {user.openTo}
-        </p>
-      )}
+      <p className="text-xs text-gray-400 text-center mb-6">
+        Open to: {user.openTo}
+      </p>
 
-      {/* Action buttons */}
       {status === 'pending' ? (
         <div className="text-center py-3 bg-primary-light rounded-xl">
           <div className="flex items-center justify-center gap-2">

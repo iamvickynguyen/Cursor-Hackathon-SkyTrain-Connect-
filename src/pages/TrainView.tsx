@@ -32,7 +32,6 @@ export default function TrainView({ profile, onLeave, onToggleGhost }: TrainView
   const [skipped, setSkipped] = useState<Set<string>>(new Set())
   const [showSendFor, setShowSendFor] = useState<string | null>(null)
 
-  // Current match to show (skip already interested, skipped, sent)
   const currentMatch = useMemo(() => {
     return (
       matches.find(m => {
@@ -46,14 +45,12 @@ export default function TrainView({ profile, onLeave, onToggleGhost }: TrainView
     )
   }, [matches, skipped, getInterestStatus, sentTo])
 
-  // Find the match I'm waiting on (pending)
   const waitingMatch = useMemo(() => {
     return (
       matches.find(m => getInterestStatus(m.user.id) === 'pending') ?? null
     )
   }, [matches, getInterestStatus])
 
-  // Detect when an interest I sent gets accepted → show SendPanel
   const acceptedMatch = useMemo(() => {
     return (
       matches.find(
@@ -86,7 +83,6 @@ export default function TrainView({ profile, onLeave, onToggleGhost }: TrainView
 
   const handleAcceptInvite = async (interestId: string, fromUserId: string) => {
     await respondToInterest(interestId, 'accepted')
-    // Now show SendPanel for me too (I accepted them, so I can send my info)
     setShowSendFor(fromUserId)
   }
 
@@ -122,14 +118,12 @@ export default function TrainView({ profile, onLeave, onToggleGhost }: TrainView
     }
   }
 
-  // What to show in the main area
   const showingWaiting = !showSendFor && waitingMatch && !currentMatch
   const showingSendPanel = showSendFor && sendPanelMatch
 
   return (
     <div className="min-h-screen bg-white">
       <div className="max-w-md mx-auto px-4 py-6 space-y-6">
-        {/* Header */}
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-lg font-semibold text-gray-900">
@@ -151,7 +145,6 @@ export default function TrainView({ profile, onLeave, onToggleGhost }: TrainView
           </button>
         </div>
 
-        {/* Your info bar */}
         <div className="flex items-center justify-between py-3 border-y border-gray-100">
           <div className="flex items-center gap-2">
             <div className="w-7 h-7 rounded-full bg-primary-light flex items-center justify-center text-primary font-medium text-xs overflow-hidden">
@@ -186,7 +179,6 @@ export default function TrainView({ profile, onLeave, onToggleGhost }: TrainView
           </button>
         </div>
 
-        {/* Incoming invites (must respond before seeing new matches) */}
         {receivedInterests.length > 0 && (
           <div>
             <p className="text-xs font-medium text-primary uppercase tracking-wider mb-3">
@@ -205,7 +197,6 @@ export default function TrainView({ profile, onLeave, onToggleGhost }: TrainView
           </div>
         )}
 
-        {/* Main match area */}
         <div>
           <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-3">
             Discover
@@ -273,7 +264,6 @@ export default function TrainView({ profile, onLeave, onToggleGhost }: TrainView
           )}
         </div>
 
-        {/* Received connections (photo + location) */}
         {incoming.length > 0 && (
           <div>
             <p className="text-xs font-medium text-primary uppercase tracking-wider mb-3">
