@@ -1,4 +1,4 @@
-# SkyTrain Connect
+# Trainspotting People (Cursor Hackathon)
 
 A PWA that connects SkyTrain commuters based on professional profile similarity. Open the app to "board the train", get matched with nearby professionals who share your interests.
 
